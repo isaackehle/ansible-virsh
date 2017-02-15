@@ -1,0 +1,85 @@
+#!/bin/bash
+# This script will run the first time the virtual machine boots
+# It is ran as root.
+
+# Expire the user account
+# passwd -e administrator
+
+# Install openssh-server
+# apt-get update
+apt-get install -qqy --force-yes openssh-server
+
+# apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
+
+# Regenerate openssh keys.
+rm /etc/ssh/ssh_host*key*
+dpkg-reconfigure -f noninteractive -p critical openssh-server
+
+# Install rsync
+sudo apt install rsync -qqy
+
+#
+#
+#
+tgtFile="/etc/network/interfaces"
+
+echo "
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto ens3
+iface ens3 inet dhcp
+" > ${tgtFile}
+
+chown root.root ${tgtFile}
+chmod 644 ${tgtFile}
+
+#
+# Set APT Proxy
+#
+tgtFile="/etc/apt/apt.conf.d/80proxy"
+
+echo 'Acquire::http::proxy \"http://{{proxy.addr}:{{proxy.port}/\";
+Acquire::ftp::proxy \"ftp://{{proxy.addr}:{{proxy.port}/\";
+Acquire::https::proxy \"https://{{proxy.addr}:{{proxy.port}/\";
+' > ${tgtFile}
+
+chown root.root ${tgtFile}
+chmod 644 ${tgtFile}
+
+#
+# Set global environment file
+#
+tgtFile="/etc/environment"
+echo 'http_proxy=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'https_proxy=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'ftp_proxy=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'no_proxy=\"localhost,127.0.0.1,localaddress,.localdomain.com\"' | tee -a ${tgtFile}
+echo 'HTTP_PROXY=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'HTTPS_PROXY=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'FTP_PROXY=http://{{proxy.addr}:{{proxy.port}/' | tee -a ${tgtFile}
+echo 'NO_PROXY=\"localhost,127.0.0.1,localaddress,.localdomain.com\"' | tee -a ${tgtFile}
+
+
+tgtFile="/etc/profile.d/proxy.sh"
+
+echo "export http_proxy=http://{{proxy.addr}:{{proxy.port}/
+export https_proxy=http://{{proxy.addr}:{{proxy.port}/
+export npm_config_proxy=http://{{proxy.addr}:{{proxy.port}/
+export npm_config_https_proxy=http://{{proxy.addr}:{{proxy.port}/
+" > ${tgtFile}
+
+chown root.root ${tgtFile}
+chmod 644 ${tgtFile}
+
+#
+# Set Proxy to Bower Config File
+#
+tgtFile="~/.bowerrc"
+
+echo '{
+  "proxy" : "http://{{proxy.addr}:{{proxy.port}",
+  "https-proxy" : "https://{{proxy.addr}:{{proxy.port}"
+}' > ${tgtFile}

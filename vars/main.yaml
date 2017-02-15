@@ -5,5 +5,24 @@ vm_started:       false
 do_folder_rename: false
 do_change:        true
 
-
 iso_path:         "/var/lib/libvirt/boot/"
+configs_path:     "/var/lib/libvirt/configs/"
+part_file:        "/var/lib/libvirt/configs/vmbuilder.partitions"
+
+first_boot_proxy:     "/var/lib/libvirt/configs/first_boot_with_proxy.sh"
+first_boot_standard:  "/var/lib/libvirt/configs/first_boot.sh"
+
+osVersions:
+  16.04.1:      "ubuntu-16.04"
+  14.04.1:      "ubuntu-14.04"
+  14.04.2:      "ubuntu-14.04"
+  14.04.3:      "ubuntu-14.04"
+  14.04.4:      "ubuntu-14.04"
+
+variants:
+  16.04.1:      "ubuntu16.04"
+  14.04.1:      "ubuntu14.04"
+  14.04.2:      "ubuntu14.04"
+  14.04.3:      "ubuntu14.04"
+  14.04.4:      "ubuntu14.04"
+

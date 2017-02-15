@@ -1,4 +1,12 @@
 ---
 
 do_install:     false
+do_create:      false
 do_rename:      false
+
+default_pwd:      "defaultpwd"
+ssh_user_key:     "/etc/ssl/private/key.pem"
+ip_address:       ""
+
+vm_name_new:   ""
+vm_name_old:   ""

@@ -19,6 +19,39 @@ tags:
 
 ## Examples
 
+### Example to install the packages 
+
+```YAML
+- hosts: all
+
+  vars:
+    do_install:      true
+    
+  roles:
+    - { role: pgkehle.virsh }
+```
+
+### Example to create a vm 
+
+```YAML
+- hosts: all
+
+  vars:
+    do_rename:      true
+    vm_name_new:   'my_vm' 
+    storage:
+      array_num:    0
+      size:
+        quan:       1
+        type:       "T"
+      name:         "sdb"
+      fs_type:      "xfs"
+    variant:        'ubuntu16.04'
+    
+  roles:
+    - { role: pgkehle.virsh }
+```
+
 ### Example to rename a vm 
 
 ```YAML
@@ -32,6 +65,10 @@ tags:
   roles:
     - { role: pgkehle.virsh }
 ```
+
+
+
+
 
 ## License
 

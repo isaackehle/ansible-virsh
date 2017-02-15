@@ -5,6 +5,11 @@
   tags:
     - install
 
+- include: create.yml
+  when: do_create|bool == true
+  tags:
+    - create
+
 - include: rename.yml
   when: do_rename|bool == true
   tags:

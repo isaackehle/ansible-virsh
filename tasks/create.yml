@@ -1,0 +1,34 @@
+---
+
+- fail: msg="Please ensure '{{ item.use }}' is set"
+  when:
+    - not {{ item.val }} is defined or {{ item.val }} == ""
+  with_items:
+    - {val: vm_name_new, use: 'VM Target Name'}
+    - {val: storage, use: 'Storage Config Object'}
+    - {val: version, use: 'OS Version (16.04.1), etc'}
+    - {val: ip_address, use: 'IP Address'}
+    - {val: network_domain, use: 'Network Domain'}
+
+- set_fact:
+    storage_images: "/mnt/storage${storage.array_num}/images"
+
+- set_fact:
+    image_path: "{{ storage_images }}/{{ vm_name }}"
+
+- set_fact:
+    variant: "{{variants[version]}}"
+    isoFile: "{{iso_path}}/ubuntu-{{version}}-server-amd64.iso"
+    cfgFile: "{{configs_path}}/ubuntu.{{version}}.conf"
+
+- set_fact:
+    first_boot: "{{first_boot_standard}}"
+  when: do_proxy|bool == false
+
+- set_fact:
+    first_boot: "{{first_boot_proxy}}"
+  when: do_proxy|bool == true
+
+- name: Create the image
+  shell: kvm ubuntu -o --config $cfgFile --part ${part_file} --hostname {{ vm_name_new }} --domain {{network_domain}} --dest {{image_path}} --firstboot {{first_boot}}"
+  when: false

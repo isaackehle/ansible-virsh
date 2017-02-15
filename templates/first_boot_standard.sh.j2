@@ -1,0 +1,37 @@
+#!/bin/bash
+# This script will run the first time the virtual machine boots
+# It is ran as root.
+
+# Expire the user account
+# passwd -e administrator
+
+# Install openssh-server
+# apt-get update
+apt-get install -qqy --force-yes openssh-server
+
+# apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
+
+# Regenerate openssh keys.
+rm /etc/ssh/ssh_host*key*
+dpkg-reconfigure -f noninteractive -p critical openssh-server
+
+# Install rsync
+sudo apt install rsync -qqy
+
+#
+#
+#
+tgtFile="/etc/network/interfaces"
+
+echo "
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto ens3
+iface ens3 inet dhcp
+" > ${tgtFile}
+
+chown root.root ${tgtFile}
+chmod 644 ${tgtFile}
