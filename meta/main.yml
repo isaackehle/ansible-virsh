@@ -1,0 +1,13 @@
+galaxy_info:
+  author: Paul Kehle <twitter.com/pgkehle>
+  description: VM Deployment using virsh
+  company: pgkehle
+  license: MIT
+  min_ansible_version: 1.9
+  platforms:
+  - name: Ubuntu
+    versions:
+    - xenial
+  galaxy_tags:
+  - system
+dependencies: []

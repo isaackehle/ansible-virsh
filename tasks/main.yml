@@ -1,0 +1,12 @@
+---
+
+- include: install.yml
+  when: do_install|bool == true
+  tags:
+    - install
+
+- include: rename.yml
+  when: do_rename|bool == true
+  tags:
+    - rename
+

@@ -1,0 +1,50 @@
+---
+
+#sed -i 's%us.archive.ubuntu.com%mirrors.gigenet.com/ubuntuarchive/%' /etc/apt/sources.list
+
+- name: Install Packages
+  apt: name={{ item }} state=present
+  become: true
+  with_items:
+    - qemu-kvm
+    - qemu
+    - virt-manager
+    - virt-viewer
+    - libvirt-bin
+    - uuid
+    - bridge-utils
+    - libosinfo-bin
+    - ubuntu-vm-builder
+    - libguestfs-tools
+
+
+- name: Add "{{ ansible_user }}" to groups
+  shell: usermod -aG "{{ item }}" "{{ ansible_user }}"
+  become: true
+  with_items:
+    - libvirtd
+    - netdev
+
+- name: image versions
+  set_fact:
+    versions: "[ '14.04.4', '16.04.1' ]"
+
+- name: test images
+  stat:
+    path: "{{ iso_path }}/ubuntu-{{ item }}-server-amd64.iso"
+    get_checksum: false
+    get_md5: false
+  become: true
+  with_items: "{{versions}}"
+  register: "r"
+
+- debug: var=r
+
+- debug: var=item
+  with_items: "{{r.results}}"
+
+- name: Downloading images
+  shell: wget -O "{{iso_path}}/ubuntu-{{item.item}}-server-amd64.iso" "http://releases.ubuntu.com/{{item.item}}/ubuntu-{{item.item}}-server-amd64.iso"
+  become: true
+  when: "{{item.stat.exists == false}}"
+  with_items: "{{r.results}}"

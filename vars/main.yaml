@@ -1,0 +1,9 @@
+---
+
+vm_exists:        false
+vm_started:       false
+do_folder_rename: false
+do_change:        true
+
+
+iso_path:         "/var/lib/libvirt/boot/"

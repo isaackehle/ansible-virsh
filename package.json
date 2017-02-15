@@ -1,0 +1,23 @@
+{
+  "name": "ansible-virsh",
+  "version": "0.9.9",
+  "description": "VM Deployment using virsh",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pgkehle/ansible-virsh.git"
+  },
+  "author": "Paul Kehle (pgkehle@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pgkehle/ansible-virsh/issues"
+  },
+  "homepage": "https://github.com/pgkehle/ansible-virsh#readme",
+  "main": "tasks/main.yml",
+  "keywords": [
+    "ansible"
+  ]
+}
