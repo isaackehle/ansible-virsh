@@ -11,12 +11,6 @@
     - {val: network_domain, use: 'Network Domain'}
 
 - set_fact:
-    storage_images: "/mnt/storage${storage.array_num}/images"
-
-- set_fact:
-    image_path: "{{ storage_images }}/{{ vm_name }}"
-
-- set_fact:
     variant: "{{variants[version]}}"
     isoFile: "{{iso_path}}/ubuntu-{{version}}-server-amd64.iso"
     cfgFile: "{{configs_path}}/ubuntu.{{version}}.conf"

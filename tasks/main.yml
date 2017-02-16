@@ -15,3 +15,7 @@
   tags:
     - rename
 
+- include: storage_add.yml
+  when: do_storage_add|bool == true
+  tags:
+    - storage

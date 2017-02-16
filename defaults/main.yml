@@ -1,12 +1,20 @@
 ---
 
-do_install:     false
-do_create:      false
-do_rename:      false
+do_install:       false
+do_create:        false
+do_rename:        false
+do_storage_add:   false
 
 default_pwd:      "defaultpwd"
 ssh_user_key:     "/etc/ssl/private/key.pem"
 ip_address:       ""
 
-vm_name_new:   ""
-vm_name_old:   ""
+bs:               '1M'
+img_type:         'img'
+type:             'raw'
+driver:           'qemu'
+format:           'qcow2'
+config:           '--config'
+
+vm_name_new:      ""
+vm_name_old:      ""

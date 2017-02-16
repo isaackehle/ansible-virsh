@@ -15,6 +15,8 @@ deploy_dir:     Required for where the base path lives
 tags:
 - install
 - rename
+- create
+- storage
 ```
 
 ## Examples

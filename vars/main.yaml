@@ -2,12 +2,13 @@
 
 vm_exists:        false
 vm_started:       false
+
 do_folder_rename: false
 do_change:        true
 
-iso_path:         "/var/lib/libvirt/boot/"
-configs_path:     "/var/lib/libvirt/configs/"
-part_file:        "/var/lib/libvirt/configs/vmbuilder.partitions"
+iso_path:             "/var/lib/libvirt/boot/"
+configs_path:         "/var/lib/libvirt/configs/"
+part_file:            "/var/lib/libvirt/configs/vmbuilder.partitions"
 
 first_boot_proxy:     "/var/lib/libvirt/configs/first_boot_with_proxy.sh"
 first_boot_standard:  "/var/lib/libvirt/configs/first_boot.sh"
@@ -26,3 +27,9 @@ variants:
   14.04.3:      "ubuntu14.04"
   14.04.4:      "ubuntu14.04"
 
+
+storage_images: "/mnt/storage{{ storage.array_num }}/images"
+image_path:     "{{ storage_images }}/{{ vm_name }}"
+img_file:       "{{ image_path }}/{{ storage.name }}.{{ img_type }}"
+create_params:  "-f {{ format }} -o preallocation=metadata {{ img_file }} {{ storage.size.quan }}{{ storage.size.type }}"
+attach_params:  "{{ vm_name }} --source {{ img_file }} --target {{ storage.name }} --driver {{ driver }} {{ config }}" # --type {{ type }}
