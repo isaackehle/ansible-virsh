@@ -1,4 +1,4 @@
-# Ansible: virsh
+# Ansible Role - virsh
 
 VM Deployment using virsh
 
@@ -84,7 +84,7 @@ Paul Kehle
 ## For local development testing
 
 ```bash
-rsync -av ~/code/ansible-virsh/* ~/.ansible/roles/pgkehle.virsh
+rsync -av --delete ~/code/ansible-virsh/* ~/.ansible/roles/pgkehle.virsh
 ```
 
 ## Reference

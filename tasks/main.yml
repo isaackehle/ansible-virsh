@@ -1,21 +1,21 @@
 ---
 
-- include: install.yml
+- include_tasks: install.yml
   when: do_install|bool == true
   tags:
     - install
 
-- include: create.yml
+- include_tasks: create.yml
   when: do_create|bool == true
   tags:
     - create
 
-- include: rename.yml
+- include_tasks: rename.yml
   when: do_rename|bool == true
   tags:
     - rename
 
-- include: storage_add.yml
+- include_tasks: storage_add.yml
   when: do_storage_add|bool == true
   tags:
     - storage
