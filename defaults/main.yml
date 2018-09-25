@@ -1,20 +1,22 @@
 ---
 
-do_install:       false
-do_create:        false
-do_rename:        false
-do_storage_add:   false
+flags:            []
 
 default_pwd:      "defaultpwd"
 ssh_user_key:     "/etc/ssl/private/key.pem"
 ip_address:       ""
 
-bs:               '1M'
-img_type:         'img'
-type:             'raw'
-driver:           'qemu'
-format:           'qcow2'
-config:           '--config'
+virsh_cfg:
+  version:        '16.04.3'
+  do_proxy:       true
+  img_type:       'img'
+  type:           'raw'
+  driver:         'qemu'
+  format:         'qcow2'
+  config:         '--config'
 
-vm_name_new:      ""
-vm_name_old:      ""
+vm_new:
+  name:           ""
+
+vm_old:
+  name:           ""

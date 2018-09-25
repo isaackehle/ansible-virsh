@@ -1,21 +1,21 @@
 ---
 
 - include_tasks: install.yml
-  when: do_install|bool == true
+  when: ((['install'] | intersect(flags)) | length > 0)
   tags:
     - install
 
 - include_tasks: create.yml
-  when: do_create|bool == true
+  when: ((['create'] | intersect(flags)) | length > 0)
   tags:
     - create
 
 - include_tasks: rename.yml
-  when: do_rename|bool == true
+  when: ((['rename'] | intersect(flags)) | length > 0)
   tags:
     - rename
 
 - include_tasks: storage_add.yml
-  when: do_storage_add|bool == true
+  when: ((['storage_add'] | intersect(flags)) | length > 0)
   tags:
     - storage

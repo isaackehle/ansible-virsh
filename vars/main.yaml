@@ -14,6 +14,7 @@ first_boot_proxy:     "/var/lib/libvirt/configs/first_boot_with_proxy.sh"
 first_boot_standard:  "/var/lib/libvirt/configs/first_boot.sh"
 
 osVersions:
+  16.04.3:      "ubuntu-16.04"
   16.04.1:      "ubuntu-16.04"
   14.04.1:      "ubuntu-14.04"
   14.04.2:      "ubuntu-14.04"
@@ -21,6 +22,7 @@ osVersions:
   14.04.4:      "ubuntu-14.04"
 
 variants:
+  16.04.3:      "ubuntu16.04"
   16.04.1:      "ubuntu16.04"
   14.04.1:      "ubuntu14.04"
   14.04.2:      "ubuntu14.04"
@@ -28,8 +30,8 @@ variants:
   14.04.4:      "ubuntu14.04"
 
 
-storage_images: "/mnt/storage{{ storage.array_num }}/images"
+storage_images: "/mnt/storage{{ storage_cfg.array_num }}/images"
 image_path:     "{{ storage_images }}/{{ vm_name }}"
-img_file:       "{{ image_path }}/{{ storage.name }}.{{ img_type }}"
-create_params:  "-f {{ format }} -o preallocation=metadata {{ img_file }} {{ storage.size.quan }}{{ storage.size.type }}"
-attach_params:  "{{ vm_name }} --source {{ img_file }} --target {{ storage.name }} --driver {{ driver }} {{ config }}" # --type {{ type }}
+img_file:       "{{ image_path }}/{{ storage_cfg.name }}.{{ virsh_cfg.img_type }}"
+create_params:  "-f {{ virsh_cfg.format }} -o preallocation=metadata {{ img_file }} {{ storage_cfg.size.quan }}{{ storage_cfg.size.type }}"
+attach_params:  "{{ vm_name }} --source {{ img_file }} --target {{ storage_cfg.name }} --driver {{ virsh_cfg.driver }} {{ virsh_cfg.config }}" # --type {{ virsh_cfg.type }}

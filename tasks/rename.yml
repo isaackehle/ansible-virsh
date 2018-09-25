@@ -2,21 +2,21 @@
 
 - fail: msg="Please ensure '{{ item.use }}' is set"
   when:
-    - not {{ item.file }} is defined or {{ item.file }} == ""
+    - not {{ item.var }} is defined or {{ item.var }} == ""
   with_items:
-    - {file: vm_name_old, use: 'Old VM Name'}
-    - {file: vm_name_new, use: 'New VM Name'}
+    - {var: vm_old.name, use: 'Old VM'}
+    - {var: vm_new.name, use: 'New VM'}
 
 - name: check for enabled
-  shell: virsh list --all | grep "{{ vm_name_old }}"
+  shell: virsh list --all | grep "{{ vm_old.name }}"
   ignore_errors: true
   register: list_result
 
 - set_fact:
     vm_exists: true
-  when: list_result.stdout | search(vm_name_old)
+  when: list_result.stdout | search(vm_old.name)
 
-- fail: msg="{{ vm_name_old }} Not Found"
+- fail: msg="{{ vm_old.name }} Not Found"
   when: vm_exists|bool == false
 
 - set_fact:
@@ -24,21 +24,21 @@
   when: list_result.stdout | search("running")
 
 - name: Ensure old is shut down
-  shell: virsh shutdown {{ vm_name_old }}
+  shell: virsh shutdown {{ vm_old.name }}
   when: vm_started|bool == true
 
 - name: dump xml
-  shell: virsh dumpxml {{ vm_name_old }} > /tmp/{{ vm_name_new }}.xml creates="/tmp/{{ vm_name_new }}.xml"
+  shell: virsh dumpxml {{ vm_old.name }} > /tmp/{{ vm_new.name }}.xml creates="/tmp/{{ vm_new.name }}.xml"
 
 - name: replace
-  shell: sed -i.bak 's/{{vm_name_old}}/{{vm_name_new}}/g' /tmp/{{ vm_name_new }}.xml creates="/tmp/{{ vm_name_new }}.xml.bak"
+  shell: sed -i.bak 's/{{vm_old.name}}/{{vm_new.name}}/g' /tmp/{{ vm_new.name }}.xml creates="/tmp/{{ vm_new.name }}.xml.bak"
 
 - name: old path result
-  shell:    virsh dumpxml {{vm_name_old}} | grep 'source file' | cut -d\' -f2
+  shell:    virsh dumpxml {{vm_old.name}} | grep 'source file' | cut -d\' -f2
   register: old_file_result
 
 - name: new path result
-  shell:    grep 'source file' /tmp/{{ vm_name_new }}.xml  | cut -d\' -f2
+  shell:    grep 'source file' /tmp/{{ vm_new.name }}.xml  | cut -d\' -f2
   register: new_file_result
 
 - set_fact:
@@ -73,8 +73,8 @@
   when: do_folder_rename|bool == true
 
 - set_fact:
-    old_folder: "{{images_folder}}/{{vm_name_old}}"
-    new_folder: "{{images_folder}}/{{vm_name_new}}"
+    old_folder: "{{images_folder}}/{{vm_old.name}}"
+    new_folder: "{{images_folder}}/{{vm_new.name}}"
   when: do_folder_rename|bool == true
 
 - name: Move old to new
@@ -82,14 +82,14 @@
   when: do_folder_rename|bool == true
   become: true
 
-- name: Undefine "{{vm_name_old}}"
-  command: virsh undefine "{{vm_name_old}}"
+- name: Undefine "{{vm_old.name}}"
+  command: virsh undefine "{{vm_old.name}}"
   when: do_change|bool == true
 
-- name: Define "{{vm_name_new}}"
-  command: virsh define "/tmp/{{ vm_name_new }}.xml"
+- name: Define "{{vm_new.name}}"
+  command: virsh define "/tmp/{{ vm_new.name }}.xml"
   when: do_change|bool == true
 
-- name: Start "{{vm_name_new}}"
-  command: virsh start "{{ vm_name_new }}"
+- name: Start "{{vm_new.name}}"
+  command: virsh start "{{ vm_new.name }}"
   when: do_change|bool == true

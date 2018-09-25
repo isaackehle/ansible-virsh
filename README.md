@@ -27,7 +27,7 @@ tags:
 - hosts: all
 
   vars:
-    do_install:      true
+    flags:      ['install']
     
   roles:
     - { role: pgkehle.virsh }
@@ -39,8 +39,9 @@ tags:
 - hosts: all
 
   vars:
-    do_rename:      true
-    vm_name_new:   'my_vm' 
+    flags:          ['create']
+    vm_new:
+        name:       'my_vm'
     storage:
       array_num:    0
       size:
@@ -60,10 +61,32 @@ tags:
 - hosts: all
 
   vars:
-    do_rename:      true
-    vm_name_old:    'old_vm' 
-    vm_name_new:    'new_vm'
+    flags:          ['rename']
+    vm_old:
+        name:       'old_vm'
+    vm_new:
+        name:       'new_vm'
     
+  roles:
+    - { role: pgkehle.virsh }
+```
+
+### Example storage add
+
+```YAML
+- hosts: all
+
+  vars:
+    flags:          ['storage_add']
+    virsh_cfg:
+      version:        '16.04.3'
+      do_proxy:       true
+      img_type:       'img'
+      type:           'raw'
+      driver:         'qemu'
+      format:         'qcow2'
+      config:         '--config'
+
   roles:
     - { role: pgkehle.virsh }
 ```
