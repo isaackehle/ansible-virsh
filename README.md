@@ -104,12 +104,6 @@ MIT
 Paul Kehle  
 @pgkehle ([twitter](https://twitter.com/pgkehle), [github](https://github.com/pgkehle), [linkedin](https://www.linkedin.com/in/pgkehle))
 
-## For local development testing
-
-```bash
-rsync -av --delete ~/code/ansible-virsh/* ~/.ansible/roles/pgkehle.virsh
-```
-
 ## Reference
 
 * http://xmodulo.com/use-kvm-command-line-debian-ubuntu.html
