@@ -3,48 +3,70 @@
 #sed -i 's%us.archive.ubuntu.com%mirrors.gigenet.com/ubuntuarchive/%' /etc/apt/sources.list
 
 - name: Install Packages
-  apt: name={{ item }} state=present
+  apt: 
+    name:
+      - qemu-kvm
+      - qemu
+      - virt-manager
+      - virt-viewer
+      - libvirt-bin
+      - uuid
+      - bridge-utils
+      - libosinfo-bin
+      - ubuntu-vm-builder
+      - libguestfs-tools
+    state: present
   become: true
-  with_items:
-    - qemu-kvm
-    - qemu
-    - virt-manager
-    - virt-viewer
-    - libvirt-bin
-    - uuid
-    - bridge-utils
-    - libosinfo-bin
-    - ubuntu-vm-builder
-    - libguestfs-tools
 
+# - name: image versions
+#   set_fact:
+#     versions: "[ '14.04.4', '16.04.1' ]"
 
-- name: Add "{{ ansible_user }}" to groups
-  shell: usermod -aG "{{ item }}" "{{ ansible_user }}"
+# - name: test images
+#   stat:
+#     path: "{{ iso_path }}/ubuntu-{{ item }}-server-amd64.iso"
+#     get_checksum: false
+#     get_md5: false
+#   become: true
+#   with_items: "{{versions}}"
+#   register: "r"
+
+# - debug: var=r
+# - debug: var=item
+#   with_items: "{{r.results}}"
+
+# - name: Downloading images
+#   shell: wget -O "{{iso_path}}/ubuntu-{{item.item}}-server-amd64.iso" "http://releases.ubuntu.com/{{item.item}}/ubuntu-{{item.item}}-server-amd64.iso"
+#   become: true
+#   when: "{{item.stat.exists == false}}"
+#   with_items: "{{r.results}}"
+
+- set_fact: 
+    virt_groups: 
+      - libvirtd
+      - netdev
+      - "{{libvirt_group}}"
+
+- user:
+    name: "{{ target_user }}"
+    shell: /bin/bash
+    groups: "{{virt_groups}}"
+    append: yes
+  when: target_user is defined
   become: true
-  with_items:
-    - libvirtd
-    - netdev
 
-- name: image versions
-  set_fact:
-    versions: "[ '14.04.4', '16.04.1' ]"
-
-- name: test images
-  stat:
-    path: "{{ iso_path }}/ubuntu-{{ item }}-server-amd64.iso"
-    get_checksum: false
-    get_md5: false
+- user:
+    name: "{{ remote_user }}"
+    shell: /bin/bash
+    groups: "{{virt_groups}}"
+    append: yes
+  when: remote_user is defined
   become: true
-  with_items: "{{versions}}"
-  register: "r"
 
-- debug: var=r
-
-- debug: var=item
-  with_items: "{{r.results}}"
-
-- name: Downloading images
-  shell: wget -O "{{iso_path}}/ubuntu-{{item.item}}-server-amd64.iso" "http://releases.ubuntu.com/{{item.item}}/ubuntu-{{item.item}}-server-amd64.iso"
+- user:
+    name: "{{ libvirt_user }}"
+    shell: /bin/bash
+    groups: "{{libvirt_group}}"
+    append: yes
+  when: libvirt_user is defined
   become: true
-  when: "{{item.stat.exists == false}}"
-  with_items: "{{r.results}}"

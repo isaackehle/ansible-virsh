@@ -1,0 +1,85 @@
+#!/bin/bash
+# This script will run the first time the virtual machine boots
+# It is ran as root.
+
+
+echo 'Add Default User and Groups'
+groupadd {{generic_group}}
+useradd -m -p '' --comment '{{ generic_user.description }}' --shell=/bin/bash --groups=sudo,adm,{{generic_group}} {{ generic_user.username }}
+mkdir -p /home/{{ generic_user.username }}/.ssh
+echo "{{ user_pubfile_data }}" > /home/{{ generic_user.username }}/.ssh/authorized_keys
+chown {{ generic_user.username }}.{{ generic_user.username }} -R /home/{{ generic_user.username }}/.ssh
+chmod 0400 /home/{{ generic_user.username }}/.ssh/authorized_keys
+
+systemctl enable ssh
+echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
+systemctl restart ssh
+
+echo "updating sudoers"
+sed -i.bak_init 's/ALL=(ALL:ALL) ALL/ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
+
+sed -i.bak_init 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+systemctl restart sshd
+
+{% if vm_cfg.network.do_proxy is defined and vm_cfg.network.do_proxy == true %}
+echo 'Setting up proxy environment'
+
+echo 'Configure apt proxy'
+echo '{{ apt_proxy_data }}' > /etc/apt/apt.conf.d/80proxy
+chown root.root /etc/apt/apt.conf.d/80proxy
+chmod 644 /etc/apt/apt.conf.d/80proxy
+echo 'updated /etc/apt/apt.conf.d/80proxy'
+
+echo 'Configure global environment file'
+echo '{{ environment_data }}' >> /etc/environment
+echo 'updated /etc/environment'
+
+echo 'Configure profile proxy'
+echo "{{ proxy_sh_data }}" > /etc/profile.d/proxy.sh
+chown root.root /etc/profile.d/proxy.sh
+chmod 644 /etc/profile.d/proxy.sh
+echo 'updated /etc/profile.d/proxy.sh'
+{% endif %}
+
+{% if version_cfg.variant == 'ubuntu16.04' or version_cfg.variant == 'ubuntu14.04' %}
+echo 'Update ifconfig network interfaces'
+echo "{{ interfaces_data }}" > /etc/network/interfaces
+chown root.root /etc/network/interfaces
+chmod 644 /etc/network/interfaces
+echo 'updated /etc/network/interfaces'
+{% endif %}
+
+{% if version_cfg.variant == 'ubuntu18.04' %}
+echo 'Update netplan'
+echo "{{ netplan_yml_data }}" > /etc/netplan/01-netcfg.yaml
+chown root.root /etc/netplan/01-netcfg.yaml
+chmod 644 /etc/netplan/01-netcfg.yaml
+echo 'updated /etc/netplan/01-netcfg.yaml'
+
+echo 'Applying netplan'
+netplan apply
+
+echo 'Bringing up the ip link'
+ip link set {{iface_name}} up
+
+ip a s
+systemctl restart networkd-dispatcher
+# dhclient &
+#sleep 5 # to ensure IP is stable
+
+echo 'Waiting for {{iface_name}} to be available ...'
+
+for i in {1..60}
+do
+  output=$(ip route | grep -oP "default via .+ dev {{iface_name}}");
+  if [ -n "$output" ]; then break; fi
+  sleep 2;
+done
+
+{% endif %}
+
+echo 'Install additional software packages'
+apt update
+apt install -y python

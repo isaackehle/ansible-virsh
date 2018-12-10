@@ -4,19 +4,8 @@ flags:            []
 
 default_pwd:      "defaultpwd"
 ssh_user_key:     "/etc/ssl/private/key.pem"
-ip_address:       ""
+hostname:         ""
 
-virsh_cfg:
-  version:        '16.04.3'
-  do_proxy:       true
-  img_type:       'img'
-  type:           'raw'
-  driver:         'qemu'
-  format:         'qcow2'
-  config:         '--config'
+version:          '18.04.1'
 
-vm_new:
-  name:           ""
-
-vm_old:
-  name:           ""
+vm_old:           ''
