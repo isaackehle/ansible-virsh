@@ -1,5 +1,10 @@
 ---
+
+- set_fact: force=true
+- set_fact: img_file={{ base_image_path }}/{{vm_cfg.storage.primary.name}}.qcow2
+
 - debug: var=vm_cfg
+- debug: var=img_file
 
 - name: get vm status
   virt: name={{ vm_name }} command=status
@@ -16,16 +21,14 @@
   delay: 5
   when: vm_status.status == "running"
 
-- set_fact: img_file="{{ base_image_path }}/{{ vm_name }}"
-- debug: var=img_file
-
 - stat: path={{ img_file }}
   register: img_file_stat
   become: true
 
-- name: delete old storage file, if exists
-  shell: /bin/rm -f {{ img_file }}
-  when: ( img_file_stat.stat.exists )
+- name: Delete the image file
+  file: state=absent path={{ img_file }}
+  when: force == true or ( img_file_stat.stat.exists )
+  become: true
 
 - set_fact: create_params="-f {{ virsh_cfg.format }} -o preallocation=metadata {{ img_file }} {{ vm_cfg.storage.secondary.size }}"
 - debug: var=create_params
@@ -42,7 +45,7 @@
 - name: Attaching Storage to Client
   raw: virsh attach-disk {{ attach_params }}
 
-- name: Attaching Storage to Client
+- name: Get the xml for the new configuration
   virt: name={{ vm_name }} command=get_xml
 
 - name: Start Up Client
