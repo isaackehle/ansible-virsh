@@ -1,54 +1,150 @@
 ---
 
-- debug: var=storage_cfg
-- debug: var=virsh_cfg
+- set_fact: version_cfg="{{versionConfigs[version]}}"
+- set_fact: iface_name=ens3
+- set_fact: img_file={{ base_image_path }}/{{vm_cfg.storage.primary.name}}.qcow2
+- set_fact: tmp_prefix="/tmp/{{ vm_name }}_"
+- set_fact: force=true
 
-- fail: msg="Please ensure '{{ item.use }}' is set"
-  when:
-    - not item.val  is defined or item.val  == ""
-  with_items:
-    - {val: vm_new.name, use: 'VM Target Name'}
-    - {val: storage_cfg, use: 'Storage Config Object'}
-    - {val: virsh_cfg, use: 'virsh Config Object'}
-    - {val: virsh_cfg.version, use: 'OS Version'}
-    - {val: virsh_cfg.ip_address, use: 'IP Address'}
-    - {val: virsh_cfg.network_domain, use: 'Network Domain'}
+# - set_fact: iso_file="{{iso_path}}/{{version_cfg.isoName}}"
 
-- set_fact:
-    variant: "{{variants[virsh_cfg.version]}}"
-    isoFile: "{{iso_path}}/ubuntu-{{virsh_cfg.version}}-server-amd64.iso"
+# - name: Ensure file was downloaded
+#   stat: path={{iso_file}}
+#   register: stat_iso
 
-- set_fact:
-    first_boot: "{{first_boot_standard}}"
-  when: virsh_cfg.do_proxy|bool == false
+# - name: Download iso file
+#   get_url:
+#     url: "{{version_cfg.url}}"
+#     dest: "{{iso_file}}"
+#   when: stat_iso.stat.exists == false
+#   become: true
 
-- set_fact:
-    first_boot: "{{first_boot_proxy}}"
-  when: virsh_cfg.do_proxy|bool == true
+- debug: var=generic_user
+
+- set_fact: user_pubfile_data={{ lookup('file', user_pubfile) }}
 
 - set_fact:
-    network: bridge:br0
-    connect: "qemu:///system"
-    vcpus: 1
+    config_files_local: 
+      - { src: ../templates/environment.j2, dest: "{{ tmp_prefix }}environment" }
+      - { src: ../templates/interfaces.j2, dest: "{{ tmp_prefix }}interfaces" }
+      - { src: ../templates/apt_proxy.j2, dest: "{{ tmp_prefix }}apt_proxy" }
+      - { src: ../templates/proxy.sh.j2, dest: "{{ tmp_prefix }}proxy.sh" }
+      - { src: ../templates/netplan.yml.j2, dest: "{{ tmp_prefix }}netplan.yml" }
 
+- name: Build local configuration files
+  template: src={{ item.src }} dest={{ item.dest }}
+  connection: local
+  with_items: "{{config_files_local}}"
 
-- name: Create the image
-  shell: "virt-install"
+- name: Read local config files into variables
+  set_fact: 
+    environment_data: "{{ lookup('file', '{{ tmp_prefix }}environment') }}"
+    interfaces_data: "{{ lookup('file', '{{ tmp_prefix }}interfaces') }}"
+    apt_proxy_data: "{{ lookup('file', '{{ tmp_prefix }}apt_proxy') }}"
+    proxy_sh_data: "{{ lookup('file', '{{ tmp_prefix }}proxy.sh') }}"
+    netplan_yml_data: "{{ lookup('file', '{{ tmp_prefix }}netplan.yml') }}"
 
-#  sudo virt-install --connect {{connect}} -n {{ vm_new.name }} --memory 512 \
-#  --cdrom {{ img_file }} --vcpus={{vcpus}} -f /dev/mapper/guest1 --network={{network}} \
-#   --vnc --accelerate -v  \
-#   --os-type=linux --os-variant=ubuntuXenial
+- name: Build the first boot script
+  set_fact:
+    config_files: 
+      - { src: ../templates/first_boot.sh.j2, dest: /tmp/first_boot.sh }
 
-sudo virt-install --connect qemu:///system -n app-worker002 --memory 512 \
-  --cdrom /var/lib/libvirt/boot/ubuntu-16.04.3-server-amd64.iso --vcpus=1 --network=bridge:br0 \
-  --vnc --accelerate -v --os-type=linux  \
-  --disk /mnt/storage0/images/app-worker002/sdb.img,size=100
+- name: Save configuration files
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items: "{{config_files}}"
 
+- name: Ensure base image path directory exists
+  file: path={{ base_image_path }} state=directory mode=770 owner={{ libvirt_user }} group={{ libvirt_group }}
+  become: true
 
+- set_fact: networkInfo=bridge:br0,model=virtio
+- set_fact: networkInfo={{networkInfo}},mac={{vm_cfg.network.mac}}
+  when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac != ''
 
-   #--noautoconsole
+# - name: Get domain info
+#   shell: virsh list --all | grep {{ vm_name }}
+#   register: domainInfo
+# - debug: var=domainInfo
 
-#  shell: "kvm ubuntu --netdev {{ netdev }} --part {{ part_file }} --hostname {{ vm_new.name }} --domain {{ vm_new.network_domain }} --dest {{image_path}} --firstboot {{first_boot}}"
-#  when: false
-# -o
+# - name: Destroy the image
+#   virt: 
+#     name: '{{ vm_name }}'
+#     state: destroy 
+#   become: true
+#   when: force == true
+
+- name: Destroy the image
+  virt: 
+    name: '{{ vm_name }}'
+    state: destroyed 
+  become: true
+  ignore_errors: true
+  when: force == true
+
+- name: Undefine the image
+  virt: 
+    name: '{{ vm_name }}'
+    command: undefine 
+  become: true
+  ignore_errors: true
+  when: force == true
+
+- name: Delete the image file
+  file: state=absent path={{ img_file }}
+  when: force == true
+
+- set_fact: 
+    builder_args: 
+      - '{{ version_cfg.version }}'
+      - --output {{ img_file }}
+      - --size {{ vm_cfg.storage.primary.size }}
+      - --format qcow2
+      - --hostname {{ hostname }}
+      - --timezone {{ timezone }}
+      # - --install rsync
+      - --firstboot-command 'dpkg-reconfigure openssh-server'
+      - --firstboot /tmp/first_boot.sh
+
+- set_fact: 
+    installer_args:
+      - --connect qemu:///system
+      - --os-variant {{ version_cfg.variant }}
+      - --import
+      - --name {{vm_name}}
+      - --memory {{vm_cfg.memory.size}}
+      - --disk path={{img_file}},format=qcow2
+      - --accelerate
+      - --vcpus {{vm_cfg.vcpus}}
+      - --hvm
+      - --graphics vnc,port={{vm_cfg.graphics.vnc.port}}
+      - --noautoconsole
+      - --network {{networkInfo}}
+      - --autostart
+
+- debug: var=builder_args
+- debug: var=installer_args
+
+- name: Test to see if {{img_file}} exists
+  stat: 
+    path: "{{img_file}}"
+    get_attributes: false
+    get_checksum: false
+  register: stat_result
+  become: true
+
+- name: Create the image file using virt-builder
+  shell: virt-builder {{builder_args | join(' ')}}
+  become: true
+  when: stat_result.stat.exists == false
+
+- name: Set Permissions
+  become: true
+  file:
+    path: "{{ img_file }}"
+    state: touch
+    mode: 0770
+    owner: "{{ libvirt_user }}"
+    group: "{{ libvirt_group }}"
+
+- name: Create the VM
+  shell: virt-install {{ installer_args | join(' ') }}

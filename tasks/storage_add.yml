@@ -1,24 +1,23 @@
 ---
-    - debug: var=vm_tgt
-#    - debug: var=size
-#    - debug: var=img_file
-#    - debug: var=create_params
-#    - debug: var=attach_params
+- debug: var=vm_cfg
 
 - name: get vm status
-  virt: name={{ vm_tgt.name }} command=status
+  virt: name={{ vm_name }} command=status
   register: vm_status
 
 - name: Shut down vm instance
-  virt: name={{ vm_tgt.name }} command=shutdown
+  virt: name={{ vm_name }} command=shutdown
   when: vm_status.status == "running"
 
-- action: virt name={{ vm_tgt.name }} command=status
+- action: virt name={{ vm_name }} command=status
   register: vm_stat
   until: vm_stat.status == "shutdown"
   retries: 30
   delay: 5
   when: vm_status.status == "running"
+
+- set_fact: img_file="{{ base_image_path }}/{{ vm_name }}"
+- debug: var=img_file
 
 - stat: path={{ img_file }}
   register: img_file_stat
@@ -28,17 +27,23 @@
   shell: /bin/rm -f {{ img_file }}
   when: ( img_file_stat.stat.exists )
 
+- set_fact: create_params="-f {{ virsh_cfg.format }} -o preallocation=metadata {{ img_file }} {{ vm_cfg.storage.secondary.size }}"
+- debug: var=create_params
+
 - name: Create Storage
   raw: qemu-img create {{ create_params }}
 
-- name: Change Storage Owner
-  raw: sudo chown libvirt-qemu:kvm {{ img_file }}
+- name: Change Storage Owner, group
+  raw: sudo chown {{libvirt_user}}:{{libvirt_group}} {{ img_file }}
+
+- set_fact: attach_params="{{ vm_name }} --source {{ img_file }} --target {{ vm_cfg.storage.secondary.name }} --driver {{ virsh_cfg.driver }} {{ virsh_cfg.config }}" 
+- debug: var=attach_params
 
 - name: Attaching Storage to Client
   raw: virsh attach-disk {{ attach_params }}
 
 - name: Attaching Storage to Client
-  virt: name={{ vm_tgt.name }} command=get_xml
+  virt: name={{ vm_name }} command=get_xml
 
 - name: Start Up Client
-  virt: name={{ vm_tgt.name }} command=start
+  virt: name={{ vm_name }} command=start

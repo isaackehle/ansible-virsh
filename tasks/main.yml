@@ -1,5 +1,16 @@
 ---
 
+- fail: msg="Please ensure '{{ item.use }}' is set"
+  when:
+    - not item.val is defined or item.val  == ""
+  with_items:
+    - {val: vm_name, use: 'VM Name'}
+    - {val: vm_cfg, use: 'VM Configuration'}
+    - {val: vm_cfg.storage, use: 'VM Storage'}
+    - {val: vm_cfg.graphics, use: 'VM Graphics'}
+    - {val: vm_cfg.vcpus, use: 'VM Virtual CPUs'}
+    - {val: version, use: 'OS Version'}
+
 - include_tasks: install.yml
   when: ((['install'] | intersect(flags)) | length > 0)
   tags:
@@ -19,3 +30,4 @@
   when: ((['storage_add'] | intersect(flags)) | length > 0)
   tags:
     - storage
+    - create

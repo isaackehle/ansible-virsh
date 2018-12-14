@@ -1,0 +1,15 @@
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+{% if vm_cfg.network is defined and vm_cfg.network.dhcp is defined and vm_cfg.network.dhcp == true %}
+auto {{iface_name}}
+iface {{iface_name}} inet dhcp
+{% else %}
+auto {{iface_name}}
+iface {{iface_name}} inet static
+    address {{ vm_cfg.network.ip }}
+    netmask {{ vm_cfg.network.netmask }}
+    gateway {{ vm_cfg.network.gateway }}
+{% endif %}

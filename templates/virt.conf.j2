@@ -1,10 +1,10 @@
 [DEFAULT]
 tmpfs         = -
 
-user          = {{vm_user}}
-name          = {{vm_user_description}}
-pass          = "{{default_pwd}}"
-ssh-user-key  = "{{ssh_user_key}}"
+user          = {{ generic_user.username }}
+name          = {{ generic_user.description }}
+pass          = {{ default_pwd }}
+ssh-user-key  = {{ ssh_user_key }}
 
 [ubuntu]
 suite           = xenial
@@ -20,11 +20,13 @@ addpkg        = unattended-upgrades, openssh-server, acpid, linux-image-generic,
 [kvm]
 libvirt       = qemu:///system
 arch          = amd64
-cpus          = 1
+cpus          = {{ vm_cfg.vcpus }}
 
 ; br0 is the system bridge manually created.  virbr0 is the virtual network bridge created via virt-manager
-bridge        = br0
+#bridge        = br0
 virtio_net    = true
-mem           = 512
-rootsize      = 10000
-timezone      = {{timezone}}
+timezone      = {{ timezone }}
+
+# -memory 512
+# -smp cpus=1
+# -enable-kvm

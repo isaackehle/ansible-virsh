@@ -6,32 +6,31 @@ vm_started:       false
 do_folder_rename: false
 do_change:        true
 
+libvirt_user:         libvirt-qemu
+libvirt_group:        kvm
+
 iso_path:             "/var/lib/libvirt/boot/"
 configs_path:         "/var/lib/libvirt/configs/"
 part_file:            "/var/lib/libvirt/configs/vmbuilder.partitions"
 
-first_boot_proxy:     "/var/lib/libvirt/configs/first_boot_with_proxy.sh"
-first_boot_standard:  "/var/lib/libvirt/configs/first_boot.sh"
+imageFileNames:
+  18.04.1:      "ubuntu-18.04.1-live-server-amd64.iso"
+  16.04.5:      "ubuntu-16.04.5-server-amd64.iso"
+  14.04.5:      "ubuntu-14.04.5-server-amd64.iso"
 
-osVersions:
-  16.04.3:      "ubuntu-16.04"
-  16.04.1:      "ubuntu-16.04"
-  14.04.1:      "ubuntu-14.04"
-  14.04.2:      "ubuntu-14.04"
-  14.04.3:      "ubuntu-14.04"
-  14.04.4:      "ubuntu-14.04"
-
-variants:
-  16.04.3:      "ubuntu16.04"
-  16.04.1:      "ubuntu16.04"
-  14.04.1:      "ubuntu14.04"
-  14.04.2:      "ubuntu14.04"
-  14.04.3:      "ubuntu14.04"
-  14.04.4:      "ubuntu14.04"
-
-
-storage_images: "/mnt/storage{{ storage_cfg.array_num }}/images"
-image_path:     "{{ storage_images }}/{{ vm_name }}"
-img_file:       "{{ image_path }}/{{ storage_cfg.name }}.{{ virsh_cfg.img_type }}"
-create_params:  "-f {{ virsh_cfg.format }} -o preallocation=metadata {{ img_file }} {{ storage_cfg.size.quan }}{{ storage_cfg.size.type }}"
-attach_params:  "{{ vm_name }} --source {{ img_file }} --target {{ storage_cfg.name }} --driver {{ virsh_cfg.driver }} {{ virsh_cfg.config }}" # --type {{ virsh_cfg.type }}
+versionConfigs: 
+  18.04.1:
+    isoName:  ubuntu-18.04.1-live-server-amd64.iso
+    url:      http://releases.ubuntu.com/18.04.1/ubuntu-18.04.1-live-server-amd64.iso
+    version:  ubuntu-18.04
+    variant:  ubuntu18.04
+  16.04.5:      
+    isoName:  "ubuntu-16.04.5-server-amd64.iso"
+    url:      http://releases.ubuntu.com/16.04.5/ubuntu-16.04.5-server-amd64.iso
+    version:  ubuntu-16.04
+    variant:  ubuntu16.04
+  14.04.5:
+    isoName:  "ubuntu-14.04.5-server-amd64.iso"
+    url:      http://releases.ubuntu.com/14.04.5/ubuntu-14.04.5-server-amd64.iso
+    version:  ubuntu-14.04
+    variant:  ubuntu14.04
