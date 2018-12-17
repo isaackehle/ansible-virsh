@@ -47,11 +47,11 @@ tags:
         primary:
           size: 320G
           type: xfs
-          name: sda
+          name: vda
         secondary:
           size: 3T
           type: xfs
-          name: sdb
+          name: vdb
       vcpus: 4
       memory:
         size: 4096
@@ -104,11 +104,11 @@ tags:
         primary:
           size: 320G
           type: xfs
-          name: sda
+          name: vda
         secondary:
           size: 3T
           type: xfs
-          name: sdb
+          name: vdb
     base_image_path:   '/mnt/storage/'
 
   roles:

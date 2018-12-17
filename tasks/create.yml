@@ -9,7 +9,7 @@
 # - set_fact: iso_file="{{iso_path}}/{{version_cfg.isoName}}"
 
 # - name: Ensure file was downloaded
-#   stat: path={{iso_file}}
+#   stat: path={{ iso_file }}
 #   register: stat_iso
 
 # - name: Download iso file
