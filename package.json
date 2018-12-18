@@ -1,6 +1,6 @@
 {
   "name": "ansible-virsh",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "VM Deployment using virsh",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
