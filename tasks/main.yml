@@ -26,8 +26,8 @@
   tags:
     - rename
 
-- include_tasks: storage_add.yml
-  when: ((['storage_add'] | intersect(flags)) | length > 0)
+- include_tasks: secondary_storage.yml
+  when: ((['secondary_storage'] | intersect(flags)) | length > 0)
   tags:
     - storage
     - create
