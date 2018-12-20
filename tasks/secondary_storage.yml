@@ -18,6 +18,7 @@
 - name: Create Storage
   shell: qemu-img create -f qcow2 -o preallocation=metadata {{ img_file }} {{ vm_cfg.storage.secondary.size }}
   when: old_stat.stat.exists == false
+  become: true
 
 - name: Set Permissions
   become: true
