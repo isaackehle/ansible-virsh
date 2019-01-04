@@ -1,6 +1,8 @@
 ---
 
-- fail: msg="Please ensure '{{ item.use }}' is set"
+- name: Ensure Required Items
+  fail: 
+    msg: "Please ensure '{{ item.use }}' is set"
   when:
     - not item.val is defined or item.val  == ""
   with_items:

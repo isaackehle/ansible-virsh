@@ -1,25 +1,31 @@
 ---
 
-- fail: msg="Please ensure '{{ item.use }}' is set"
+- name: Ensure Required Items
+  fail: 
+    msg: "Please ensure '{{ item.use }}' is set"
   when:
     - not {{ item.var }} is defined or {{ item.var }} == ""
   with_items:
     - {var: vm_old, use: 'Old VM'}
     - {var: vm_name, use: 'New VM'}
 
-- name: check for enabled
+- name: Check for enabled
   shell: virsh list --all | grep "{{ vm_old }}"
   ignore_errors: true
   register: list_result
 
-- set_fact:
+- name: Test if the VM exists
+  set_fact:
     vm_exists: true
   when: list_result.stdout | search(vm_old)
 
-- fail: msg="{{ vm_old }} Not Found"
+- name: Fail when vm doesn't exist
+  fail: 
+    msg: "{{ vm_old }} Not Found"
   when: vm_exists|bool == false
 
-- set_fact:
+- name: Test if the VM is started 
+  set_fact:
     vm_started: true
   when: list_result.stdout | search("running")
 
@@ -31,65 +37,70 @@
   shell: virsh dumpxml {{ vm_old }} > /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml"
 
 - name: replace
-  shell: sed -i.bak 's/{{vm_old}}/{{vm_name}}/g' /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml.bak"
+  shell: sed -i.bak 's/{{ vm_old }}/{{ vm_name }}/g' /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml.bak"
 
 - name: old path result
-  shell:    virsh dumpxml {{vm_old}} | grep 'source file' | cut -d\' -f2
+  shell:    virsh dumpxml {{ vm_old }} | grep 'source file' | cut -d\' -f2
   register: old_file_result
 
 - name: new path result
   shell:    grep 'source file' /tmp/{{ vm_name }}.xml  | cut -d\' -f2
   register: new_file_result
 
-- set_fact:
-    old_file: "{{old_file_result.stdout}}"
-    new_file: "{{new_file_result.stdout}}"
+- name: File Definitions
+  set_fact:
+    old_file: "{{ old_file_result.stdout }}"
+    new_file: "{{ new_file_result.stdout }}"
 
 - name: stat old_file
   stat:
-    path: '{{old_file}}'
+    path: '{{ old_file }}'
     get_checksum: false
     get_md5: false
   register: old_stat
 
-- set_fact:
+- name: Whether to rename the folder
+  set_fact:
     do_folder_rename: true
-  when: "{{old_stat.stat.exists}}"
+  when: "{{ old_stat.stat.exists }}"
 
-- shell: dirname "{{old_file}}"
+- shell: dirname "{{ old_file }}"
   register: old_folder_result
   when: do_folder_rename|bool == true
 
-- set_fact:
-    old_folder: "{{old_folder_result.stdout}}"
+- name: Old Folder Name
+  set_fact:
+    old_folder: "{{ old_folder_result.stdout }}"
   when: do_folder_rename|bool == true
 
-- shell: dirname "{{old_folder}}"
+- shell: dirname "{{ old_folder }}"
   register: images_folder_result
   when: do_folder_rename|bool == true
 
-- set_fact:
-    images_folder: "{{images_folder_result.stdout}}"
+- name: Old Folder Name
+  set_fact:
+    images_folder: "{{ images_folder_result.stdout }}"
   when: do_folder_rename|bool == true
 
-- set_fact:
-    old_folder: "{{images_folder}}/{{vm_old}}"
-    new_folder: "{{images_folder}}/{{vm_name}}"
+- name: Folder Names
+  set_fact:
+    old_folder: "{{ images_folder }}/{{ vm_old }}"
+    new_folder: "{{ images_folder }}/{{ vm_name }}"
   when: do_folder_rename|bool == true
 
 - name: Move old to new
-  command: mv "{{old_folder}}" "{{new_folder}}"
+  command: mv "{{ old_folder }}" "{{ new_folder }}"
   when: do_folder_rename|bool == true
   become: true
 
-- name: Undefine "{{vm_old}}"
-  command: virsh undefine "{{vm_old}}"
+- name: Undefine "{{ vm_old }}"
+  command: virsh undefine "{{ vm_old }}"
   when: do_change|bool == true
 
-- name: Define "{{vm_name}}"
+- name: Define "{{ vm_name }}"
   command: virsh define "/tmp/{{ vm_name }}.xml"
   when: do_change|bool == true
 
-- name: Start "{{vm_name}}"
+- name: Start "{{ vm_name }}"
   command: virsh start "{{ vm_name }}"
   when: do_change|bool == true
