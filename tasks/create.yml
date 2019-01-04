@@ -2,9 +2,9 @@
 
 - name: Standard Facts
   set_fact: 
-    version_cfg: "{{versionConfigs[version]}}"
+    version_cfg: "{{ versionConfigs[version] }}"
     iface_name: ens3
-    img_file: "{{ base_image_path }}/{{vm_cfg.storage.primary.name}}.qcow2"
+    img_file: "{{ base_image_path }}/{{ vm_cfg.storage.primary.name }}.qcow2"
     tmp_prefix: "/tmp/{{ vm_name }}_"
     force: true
     user_pubfile_data: "{{ lookup('file', user_pubfile) }}"
@@ -24,7 +24,7 @@
     src: "{{ item.src }}" 
     dest: "{{ item.dest }}"
   connection: local
-  with_items: "{{config_files_local}}"
+  with_items: "{{ config_files_local }}"
 
 - name: Read local config files into variables
   set_fact: 
@@ -43,7 +43,7 @@
   template: 
     src: "{{ item.src }}" 
     dest: "{{ item.dest }}"
-  with_items: "{{config_files}}"
+  with_items: "{{ config_files }}"
 
 - name: Ensure base image path directory exists
   file: 
@@ -57,7 +57,7 @@
 
 - name: Additional Network Info
   set_fact: 
-    networkInfo: "{{networkInfo}},mac={{vm_cfg.network.mac}}"
+    networkInfo: "{{ networkInfo }},mac={{ vm_cfg.network.mac }}"
   when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac != ''
 
 - name: Destroy the image
@@ -101,27 +101,27 @@
       - --connect qemu:///system
       - --os-variant {{ version_cfg.variant }}
       - --import
-      - --name {{vm_name}}
-      - --memory {{vm_cfg.memory.size}}
-      - --disk path={{img_file}},format=qcow2
+      - --name {{ vm_name }}
+      - --memory {{ vm_cfg.memory.size }}
+      - --disk path={{ img_file }},format=qcow2
       - --accelerate
-      - --vcpus {{vm_cfg.vcpus}}
+      - --vcpus {{ vm_cfg.vcpus }}
       - --hvm
-      - --graphics vnc,port={{vm_cfg.graphics.vnc.port}}
+      - --graphics vnc,port={{ vm_cfg.graphics.vnc.port }}
       - --noautoconsole
-      - --network {{networkInfo}}
+      - --network {{ networkInfo }}
       - --autostart
 
-- name: Test to see if {{img_file}} exists
+- name: Test to see if {{ img_file }} exists
   stat: 
-    path: "{{img_file}}"
+    path: "{{ img_file }}"
     get_attributes: false
     get_checksum: false
   register: stat_result
   become: true
 
 - name: Create the image file using virt-builder
-  shell: virt-builder {{builder_args | join(' ')}}
+  shell: virt-builder {{ builder_args | join(' ') }}
   become: true
   when: stat_result.stat.exists == false
 

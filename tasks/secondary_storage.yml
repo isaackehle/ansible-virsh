@@ -1,16 +1,20 @@
 ---
 
-- set_fact: force=false
-- set_fact: img_file={{ base_image_path }}/{{vm_cfg.storage.secondary.name}}.qcow2
+- name: Default variables
+  set_fact: 
+    force: false
+    img_file: "{{ base_image_path }}/{{ vm_cfg.storage.secondary.name }}.qcow2"
 
 - name: Delete the image file
-  file: state=absent path={{ img_file }}
+  file: 
+    path: "{{ img_file }}"
+    state: absent 
   when: force == true
   become: true
 
 - name: stat {{ img_file }}
   stat:
-    path: '{{img_file}}'
+    path: '{{ img_file }}'
     get_checksum: false
     get_md5: false
   register: old_stat
@@ -35,5 +39,7 @@
   become: true
 
 - name: Get the xml for the new configuration
-  virt: name={{ vm_name }} command=get_xml
+  virt: 
+    name: "{{ vm_name }}" 
+    command: get_xml
 

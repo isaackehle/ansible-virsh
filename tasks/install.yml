@@ -18,32 +18,36 @@
     state: present
   become: true
 
-- set_fact: 
+- name: Set the groups needed
+  set_fact: 
     virt_groups: 
       - libvirtd
       - netdev
-      - "{{libvirt_group}}"
+      - "{{ libvirt_group }}"
 
-- user:
+- name: Create the target user
+  user:
     name: "{{ target_user }}"
     shell: /bin/bash
-    groups: "{{virt_groups}}"
+    groups: "{{ virt_groups }}"
     append: yes
   when: target_user is defined
   become: true
 
-- user:
+- name: Create the remote user
+  user:
     name: "{{ remote_user }}"
     shell: /bin/bash
-    groups: "{{virt_groups}}"
+    groups: "{{ virt_groups }}"
     append: yes
   when: remote_user is defined
   become: true
 
-- user:
+- name: Create the libvirt user
+  user:
     name: "{{ libvirt_user }}"
     shell: /bin/bash
-    groups: "{{libvirt_group}}"
+    groups: "{{ libvirt_group }}"
     append: yes
   when: libvirt_user is defined
   become: true
