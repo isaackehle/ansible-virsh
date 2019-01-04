@@ -1,29 +1,17 @@
 ---
 
-- set_fact: version_cfg="{{versionConfigs[version]}}"
-- set_fact: iface_name=ens3
-- set_fact: img_file={{ base_image_path }}/{{vm_cfg.storage.primary.name}}.qcow2
-- set_fact: tmp_prefix="/tmp/{{ vm_name }}_"
-- set_fact: force=true
+- name: Standard Facts
+  set_fact: 
+    version_cfg: "{{versionConfigs[version]}}"
+    iface_name: ens3
+    img_file: "{{ base_image_path }}/{{vm_cfg.storage.primary.name}}.qcow2"
+    tmp_prefix: "/tmp/{{ vm_name }}_"
+    force: true
+    user_pubfile_data: "{{ lookup('file', user_pubfile) }}"
+    networkInfo: bridge:br0,model=virtio
 
-# - set_fact: iso_file="{{iso_path}}/{{version_cfg.isoName}}"
-
-# - name: Ensure file was downloaded
-#   stat: path={{ iso_file }}
-#   register: stat_iso
-
-# - name: Download iso file
-#   get_url:
-#     url: "{{version_cfg.url}}"
-#     dest: "{{iso_file}}"
-#   when: stat_iso.stat.exists == false
-#   become: true
-
-- debug: var=generic_user
-
-- set_fact: user_pubfile_data={{ lookup('file', user_pubfile) }}
-
-- set_fact:
+- name: Local Config Files
+  set_fact:
     config_files_local: 
       - { src: ../templates/environment.j2, dest: "{{ tmp_prefix }}environment" }
       - { src: ../templates/interfaces.j2, dest: "{{ tmp_prefix }}interfaces" }
@@ -32,7 +20,9 @@
       - { src: ../templates/netplan.yml.j2, dest: "{{ tmp_prefix }}netplan.yml" }
 
 - name: Build local configuration files
-  template: src={{ item.src }} dest={{ item.dest }}
+  template: 
+    src: "{{ item.src }}" 
+    dest: "{{ item.dest }}"
   connection: local
   with_items: "{{config_files_local}}"
 
@@ -50,28 +40,25 @@
       - { src: ../templates/first_boot.sh.j2, dest: /tmp/first_boot.sh }
 
 - name: Save configuration files
-  template: src={{ item.src }} dest={{ item.dest }}
+  template: 
+    src: "{{ item.src }}" 
+    dest: "{{ item.dest }}"
   with_items: "{{config_files}}"
 
 - name: Ensure base image path directory exists
-  file: path={{ base_image_path }} state=directory mode=770 owner={{ libvirt_user }} group={{ libvirt_group }}
+  file: 
+    path: "{{ base_image_path }}" 
+    state: directory 
+    mode: "0770" 
+    owner: "{{ libvirt_user }}" 
+    group: "{{ libvirt_group }}"
   become: true
 
-- set_fact: networkInfo=bridge:br0,model=virtio
-- set_fact: networkInfo={{networkInfo}},mac={{vm_cfg.network.mac}}
+
+- name: Additional Network Info
+  set_fact: 
+    networkInfo: "{{networkInfo}},mac={{vm_cfg.network.mac}}"
   when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac != ''
-
-# - name: Get domain info
-#   shell: virsh list --all | grep {{ vm_name }}
-#   register: domainInfo
-# - debug: var=domainInfo
-
-# - name: Destroy the image
-#   virt: 
-#     name: '{{ vm_name }}'
-#     state: destroy 
-#   become: true
-#   when: force == true
 
 - name: Destroy the image
   virt: 
@@ -90,10 +77,13 @@
   when: force == true
 
 - name: Delete the image file
-  file: state=absent path={{ img_file }}
+  file: 
+    path: "{{ img_file }}"
+    state: absent 
   when: force == true
 
-- set_fact: 
+- name: Builder Args
+  set_fact: 
     builder_args: 
       - '{{ version_cfg.version }}'
       - --output {{ img_file }}
@@ -105,7 +95,8 @@
       - --firstboot-command 'dpkg-reconfigure openssh-server'
       - --firstboot /tmp/first_boot.sh
 
-- set_fact: 
+- name: Installer Args
+  set_fact: 
     installer_args:
       - --connect qemu:///system
       - --os-variant {{ version_cfg.variant }}
@@ -120,9 +111,6 @@
       - --noautoconsole
       - --network {{networkInfo}}
       - --autostart
-
-- debug: var=builder_args
-- debug: var=installer_args
 
 - name: Test to see if {{img_file}} exists
   stat: 
