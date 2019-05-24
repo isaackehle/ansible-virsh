@@ -1,20 +1,19 @@
 ---
-
 - name: Default variables
-  set_fact: 
+  set_fact:
     force: false
     img_file: "{{ base_image_path }}/{{ vm_cfg.storage.secondary.name }}.qcow2"
 
 - name: Delete the image file
-  file: 
+  file:
     path: "{{ img_file }}"
-    state: absent 
-  when: force == true
+    state: absent
+  when: force
   become: true
 
 - name: stat {{ img_file }}
   stat:
-    path: '{{ img_file }}'
+    path: "{{ img_file }}"
     get_checksum: false
     get_md5: false
   register: old_stat
@@ -33,13 +32,11 @@
     owner: "{{ libvirt_user }}"
     group: "{{ libvirt_group }}"
 
-
 - name: Attaching Storage to Client
   shell: virsh attach-disk --domain {{ vm_name }} --source {{ img_file }} --target {{ vm_cfg.storage.secondary.name }} --driver qemu --subdriver qcow2 --targetbus virtio --config --live
   become: true
 
 - name: Get the xml for the new configuration
-  virt: 
-    name: "{{ vm_name }}" 
+  virt:
+    name: "{{ vm_name }}"
     command: get_xml
-
