@@ -62,7 +62,7 @@
 - name: Additional Network Info
   set_fact:
     networkInfo: "{{ networkInfo }},mac={{ vm_cfg.network.mac }}"
-  when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac != ''
+  when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac | length > 0
 
 - name: Destroy the image
   virt:
@@ -127,7 +127,7 @@
 - name: Create the image file using virt-builder
   shell: virt-builder {{ builder_args | join(' ') }}
   become: true
-  when: stat_result.stat.exists == false
+  when: not stat_result.stat.exists
 
 - name: Set Permissions
   become: true

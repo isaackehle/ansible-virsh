@@ -20,7 +20,7 @@
 
 - name: Create Storage
   shell: qemu-img create -f qcow2 -o preallocation=metadata {{ img_file }} {{ vm_cfg.storage.secondary.size }}
-  when: old_stat.stat.exists == false
+  when: not old_stat.stat.exists
   become: true
 
 - name: Set Permissions
@@ -32,8 +32,15 @@
     owner: "{{ libvirt_user }}"
     group: "{{ libvirt_group }}"
 
+- name: Params
+  set_fact:
+    targetParam: "--target {{ vm_cfg.storage.secondary.name }}"
+    sourceParam: "--source {{ img_file }}"
+    domainParam: "--domain {{ vm_name }}"
+    otherParams: "--driver qemu --subdriver qcow2 --targetbus virtio --config --live"
+
 - name: Attaching Storage to Client
-  shell: virsh attach-disk --domain {{ vm_name }} --source {{ img_file }} --target {{ vm_cfg.storage.secondary.name }} --driver qemu --subdriver qcow2 --targetbus virtio --config --live
+  shell: virsh attach-disk {{ domainParam }} {{ sourceParam }} {{ targetParam }} {{ otherParams }}
   become: true
 
 - name: Get the xml for the new configuration

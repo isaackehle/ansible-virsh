@@ -7,7 +7,7 @@ network:
 {% else %}
       dhcp4: false
       addresses: [ "{{ vm_cfg.network.ip }}"/"{{ vm_cfg.network.mask }}" ]
-{% if vm_cfg.network is defined and vm_cfg.network.gateway is defined and vm_cfg.network.gateway != '' %}
+{% if vm_cfg.network is defined and vm_cfg.network.gateway is defined and vm_cfg.network.gateway | length > 0 %}
       gateway4: {{ vm_cfg.network.gateway }}
 {% endif %}
 {% if dns_servers is defined %}
