@@ -1,9 +1,6 @@
 ---
-
-#sed -i 's%us.archive.ubuntu.com%mirrors.gigenet.com/ubuntuarchive/%' /etc/apt/sources.list
-
 - name: Install Packages
-  apt: 
+  apt:
     name:
       - qemu-kvm
       - qemu
@@ -19,8 +16,8 @@
   become: true
 
 - name: Set the groups needed
-  set_fact: 
-    virt_groups: 
+  set_fact:
+    virt_groups:
       - libvirtd
       - netdev
       - "{{ libvirt_group }}"

@@ -23,7 +23,7 @@ sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_c
 
 systemctl restart sshd
 
-{% if vm_cfg.network.do_proxy is defined and vm_cfg.network.do_proxy == true %}
+{% if vm_cfg.network.do_proxy is defined and vm_cfg.network.do_proxy %}
 echo 'Setting up proxy environment'
 
 echo 'Configure apt proxy'

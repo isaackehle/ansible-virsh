@@ -1,35 +1,34 @@
 ---
-
 - name: Ensure Required Items
-  fail: 
-    msg: "Please ensure '{{ item.use }}' is set"
+  fail:
+        msg: "Please ensure '{{ item.use }}' is set"
   when:
-    - not item.val is defined or item.val  == ""
+        - not item.val is defined or item.val  | length == 0
   with_items:
-    - {val: vm_name, use: 'VM Name'}
-    - {val: vm_cfg, use: 'VM Configuration'}
-    - {val: vm_cfg.storage, use: 'VM Storage'}
-    - {val: vm_cfg.graphics, use: 'VM Graphics'}
-    - {val: vm_cfg.vcpus, use: 'VM Virtual CPUs'}
-    - {val: version, use: 'OS Version'}
+        - { val: vm_name, use: "VM Name" }
+        - { val: vm_cfg, use: "VM Configuration" }
+        - { val: vm_cfg.storage, use: "VM Storage" }
+        - { val: vm_cfg.graphics, use: "VM Graphics" }
+        - { val: vm_cfg.vcpus, use: "VM Virtual CPUs" }
+        - { val: version, use: "OS Version" }
 
 - include_tasks: install.yml
   when: ((['install'] | intersect(flags)) | length > 0)
   tags:
-    - install
+        - install
 
 - include_tasks: create.yml
   when: ((['create'] | intersect(flags)) | length > 0)
   tags:
-    - create
+        - create
 
 - include_tasks: rename.yml
   when: ((['rename'] | intersect(flags)) | length > 0)
   tags:
-    - rename
+        - rename
 
 - include_tasks: secondary_storage.yml
   when: ((['secondary_storage'] | intersect(flags)) | length > 0)
   tags:
-    - storage
-    - create
+        - storage
+        - create

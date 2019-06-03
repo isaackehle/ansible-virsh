@@ -1,7 +1,6 @@
 ---
-
 - name: Standard Facts
-  set_fact: 
+  set_fact:
     version_cfg: "{{ versionConfigs[version] }}"
     iface_name: ens3
     img_file: "{{ base_image_path }}/{{ vm_cfg.storage.primary.name }}.qcow2"
@@ -12,22 +11,28 @@
 
 - name: Local Config Files
   set_fact:
-    config_files_local: 
-      - { src: ../templates/environment.j2, dest: "{{ tmp_prefix }}environment" }
+    config_files_local:
+      - {
+          src: ../templates/environment.j2,
+          dest: "{{ tmp_prefix }}environment",
+        }
       - { src: ../templates/interfaces.j2, dest: "{{ tmp_prefix }}interfaces" }
       - { src: ../templates/apt_proxy.j2, dest: "{{ tmp_prefix }}apt_proxy" }
       - { src: ../templates/proxy.sh.j2, dest: "{{ tmp_prefix }}proxy.sh" }
-      - { src: ../templates/netplan.yml.j2, dest: "{{ tmp_prefix }}netplan.yml" }
+      - {
+          src: ../templates/netplan.yml.j2,
+          dest: "{{ tmp_prefix }}netplan.yml",
+        }
 
 - name: Build local configuration files
-  template: 
-    src: "{{ item.src }}" 
+  template:
+    src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   connection: local
   with_items: "{{ config_files_local }}"
 
 - name: Read local config files into variables
-  set_fact: 
+  set_fact:
     environment_data: "{{ lookup('file', '{{ tmp_prefix }}environment') }}"
     interfaces_data: "{{ lookup('file', '{{ tmp_prefix }}interfaces') }}"
     apt_proxy_data: "{{ lookup('file', '{{ tmp_prefix }}apt_proxy') }}"
@@ -36,56 +41,55 @@
 
 - name: Build the first boot script
   set_fact:
-    config_files: 
+    config_files:
       - { src: ../templates/first_boot.sh.j2, dest: /tmp/first_boot.sh }
 
 - name: Save configuration files
-  template: 
-    src: "{{ item.src }}" 
+  template:
+    src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items: "{{ config_files }}"
 
 - name: Ensure base image path directory exists
-  file: 
-    path: "{{ base_image_path }}" 
-    state: directory 
-    mode: "0770" 
-    owner: "{{ libvirt_user }}" 
+  file:
+    path: "{{ base_image_path }}"
+    state: directory
+    mode: "0770"
+    owner: "{{ libvirt_user }}"
     group: "{{ libvirt_group }}"
   become: true
 
-
 - name: Additional Network Info
-  set_fact: 
+  set_fact:
     networkInfo: "{{ networkInfo }},mac={{ vm_cfg.network.mac }}"
-  when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac != ''
+  when: vm_cfg.network is defined and vm_cfg.network.mac is defined and vm_cfg.network.mac | length > 0
 
 - name: Destroy the image
-  virt: 
-    name: '{{ vm_name }}'
-    state: destroyed 
+  virt:
+    name: "{{ vm_name }}"
+    state: destroyed
   become: true
   ignore_errors: true
-  when: force == true
+  when: force
 
 - name: Undefine the image
-  virt: 
-    name: '{{ vm_name }}'
-    command: undefine 
+  virt:
+    name: "{{ vm_name }}"
+    command: undefine
   become: true
   ignore_errors: true
-  when: force == true
+  when: force
 
 - name: Delete the image file
-  file: 
+  file:
     path: "{{ img_file }}"
-    state: absent 
-  when: force == true
+    state: absent
+  when: force
 
 - name: Builder Args
-  set_fact: 
-    builder_args: 
-      - '{{ version_cfg.version }}'
+  set_fact:
+    builder_args:
+      - "{{ version_cfg.version }}"
       - --output {{ img_file }}
       - --size {{ vm_cfg.storage.primary.size }}
       - --format qcow2
@@ -96,7 +100,7 @@
       - --firstboot /tmp/first_boot.sh
 
 - name: Installer Args
-  set_fact: 
+  set_fact:
     installer_args:
       - --connect qemu:///system
       - --os-variant {{ version_cfg.variant }}
@@ -113,7 +117,7 @@
       - --autostart
 
 - name: Test to see if {{ img_file }} exists
-  stat: 
+  stat:
     path: "{{ img_file }}"
     get_attributes: false
     get_checksum: false
@@ -123,7 +127,7 @@
 - name: Create the image file using virt-builder
   shell: virt-builder {{ builder_args | join(' ') }}
   become: true
-  when: stat_result.stat.exists == false
+  when: not stat_result.stat.exists
 
 - name: Set Permissions
   become: true
