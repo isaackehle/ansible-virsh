@@ -28,7 +28,7 @@
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-  connection: local
+  delegate_to: localhost
   with_items: "{{ config_files_local }}"
 
 - name: Read local config files into variables
