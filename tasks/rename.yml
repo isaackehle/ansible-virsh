@@ -9,9 +9,10 @@
     - { var: vm_name, use: "New VM" }
 
 - name: Check for enabled
-  shell: virsh list --all | grep "{{ vm_old }}"
+  command: virsh list --all | grep "{{ vm_old }}"
   ignore_errors: true
   register: list_result
+  when: true
 
 - name: Test if the VM exists
   set_fact:
@@ -29,22 +30,30 @@
   when: list_result.stdout | search("running")
 
 - name: Ensure old is shut down
-  shell: virsh shutdown {{ vm_old }}
+  command: virsh shutdown {{ vm_old }}
   when: vm_started
 
 - name: dump xml
-  shell: virsh dumpxml {{ vm_old }} > /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml"
+  command: virsh dumpxml {{ vm_old }} > /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml"
 
 - name: replace
-  shell: sed -i.bak 's/{{ vm_old }}/{{ vm_name }}/g' /tmp/{{ vm_name }}.xml creates="/tmp/{{ vm_name }}.xml.bak"
+  when: true
+  lineinfile:
+    dest: "/tmp/{{ vm_name }}.xml"
+    state: present
+    regexp: "{{ vm_old }}"
+    line: "{{ vm_name }}"
+    backup: true
 
 - name: old path result
-  shell: virsh dumpxml {{ vm_old }} | grep 'source file' | cut -d\' -f2
+  command: virsh dumpxml {{ vm_old }} | grep 'source file' | cut -d\' -f2
   register: old_file_result
+  when: true
 
 - name: new path result
-  shell: grep 'source file' /tmp/{{ vm_name }}.xml  | cut -d\' -f2
+  command: grep 'source file' /tmp/{{ vm_name }}.xml  | cut -d\' -f2
   register: new_file_result
+  when: true
 
 - name: File Definitions
   set_fact:
@@ -61,9 +70,10 @@
 - name: Whether to rename the folder
   set_fact:
     do_folder_rename: true
-  when: "{{ old_stat.stat.exists }}"
+  when: old_stat.stat.exists
 
-- shell: dirname "{{ old_file }}"
+- name: Rename old folder
+  command: dirname "{{ old_file }}"
   register: old_folder_result
   when: do_folder_rename
 
@@ -72,7 +82,8 @@
     old_folder: "{{ old_folder_result.stdout }}"
   when: do_folder_rename
 
-- shell: dirname "{{ old_folder }}"
+- name: Rename images folder
+  command: dirname "{{ old_folder }}"
   register: images_folder_result
   when: do_folder_rename
 

@@ -125,7 +125,7 @@
   become: true
 
 - name: Create the image file using virt-builder
-  shell: virt-builder {{ builder_args | join(' ') }}
+  command: virt-builder {{ builder_args | join(' ') }}
   become: true
   when: not stat_result.stat.exists
 
@@ -139,4 +139,5 @@
     group: "{{ libvirt_group }}"
 
 - name: Create the VM
-  shell: virt-install {{ installer_args | join(' ') }}
+  command: virt-install {{ installer_args | join(' ') }}
+  when: true
