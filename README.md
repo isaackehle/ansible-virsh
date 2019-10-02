@@ -7,7 +7,7 @@ Available on Ansible Galaxy: [pgkehle.virsh](https://galaxy.ansible.com/pgkehle/
 ## Variables
 
 ```yaml
-deploy_dir:     Required for where the base path lives
+deploy_dir: Required for where the base path lives
 ```
 
 ## Tags
@@ -115,6 +115,13 @@ tags:
     - { role: pgkehle.virsh }
 ```
 
+## Linting
+
+```bash
+yamllint -c yamllint.yaml .
+ansible-lint .
+```
+
 ## License
 
 MIT
@@ -123,5 +130,3 @@ MIT
 
 Paul Kehle  
 @pgkehle ([twitter](https://twitter.com/pgkehle), [github](https://github.com/pgkehle), [linkedin](https://www.linkedin.com/in/pgkehle))
-
-### Virsh Commands
