@@ -2,7 +2,7 @@
 
 VM Deployment using virsh
 
-Available on Ansible Galaxy: [pgkehle.virsh](https://galaxy.ansible.com/pgkehle/virsh)
+Available on Ansible Galaxy: [isaackehle.virsh](https://galaxy.ansible.com/isaackehle/virsh)
 
 ## Variables
 
@@ -31,7 +31,7 @@ tags:
     flags:      ['install']
 
   roles:
-    - { role: pgkehle.virsh }
+    - { role: isaackehle.virsh }
 ```
 
 ### Example to create a vm
@@ -74,7 +74,7 @@ tags:
 
 
   roles:
-    - { role: pgkehle.virsh }
+    - { role: isaackehle.virsh }
 ```
 
 ### Example to rename a vm
@@ -88,7 +88,7 @@ tags:
     vm_old: 'old_vm'
 
   roles:
-    - { role: pgkehle.virsh }
+    - { role: isaackehle.virsh }
 ```
 
 ### Example add secondary storage
@@ -112,7 +112,7 @@ tags:
     base_image_path:   '/mnt/storage/'
 
   roles:
-    - { role: pgkehle.virsh }
+    - { role: isaackehle.virsh }
 ```
 
 ## Linting
@@ -128,5 +128,5 @@ MIT
 
 ## Author Information
 
-Paul Kehle  
-@pgkehle ([twitter](https://twitter.com/pgkehle), [github](https://github.com/pgkehle), [linkedin](https://www.linkedin.com/in/pgkehle))
+Isaac Kehle
+@isaackehle ([twitter](https://twitter.com/isaackehle), [github](https://github.com/isaackehle), [linkedin](https://www.linkedin.com/in/isaackehle))
