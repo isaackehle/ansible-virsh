@@ -2,7 +2,7 @@
 
 VM Deployment using virsh
 
-Available on Ansible Galaxy: [isaackehle.virsh](https://galaxy.ansible.com/isaackehle/virsh)
+Available on Ansible Galaxy: [isaackehle.virsh](https://galaxy.ansible.com/isaackehle/ansible_virsh)
 
 ## Variables
 
